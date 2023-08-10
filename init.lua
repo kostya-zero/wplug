@@ -16,16 +16,15 @@ local default_opts = {
 
 M.opts = default_opts
 
-local function dir_exists()
-    local status, _ = pcall(io.open, "~/.wplug")
-    return status
-end
-
 local function git_clone(url, path, branch)
     local git_status = io.popen("git clone --branch " .. branch .. " " .. url .. " -- " .. path, "r"):read("*a")
     if string.match(git_status, "fatal:") then
         api.log_error("wplug: installation of " .. url .. "failed.")
     end
+end
+
+function M.wplug_version()
+    return "0.1.0"
 end
 
 function M.setup(opts)
@@ -42,10 +41,6 @@ function M.setup(opts)
     package.path = package.path .. ";~/.wezterm/?/lua/?.lua"
     package.path = package.path .. ";~/.wezterm/?/lua/init.lua"
 
-    if dir_exists() then
-        os.execute("mkdir ~/.wplug")
-    end
-
     api.log_info(opts)
     M.opts.spec = {}
 
@@ -54,7 +49,6 @@ function M.setup(opts)
         if v.local_install == nil then
             v.local_install = false
         end
-
 
         if v.local_install == true then
             api.log_info("wplug: loading localy installed plugin " .. repo)
@@ -76,8 +70,9 @@ function M.setup(opts)
                 for i in string.gmatch(name_temp, "%a+") do
                     if name_index == 0 then
                         name_index = 1
-                    else
+                    elseif name_index == 1 then
                         v.name = i
+                        name_index = name_index + 1
                     end
                 end
             end
@@ -86,9 +81,9 @@ function M.setup(opts)
                 v.provider = "https://github.com"
             end
 
-            if io.open("~/.wplug/" .. v.name) ~= nil then
+            if io.open("~/.wezterm/" .. v.name, "r") == nil then
                 api.log_info("wplug: installing " .. repo)
-                git_clone(v.provider .. "/" .. repo, "~/.wplug/" .. v.name, v.branch)
+                git_clone(v.provider .. "/" .. repo, "~/.wezterm/" .. v.name, v.branch)
             else
                 api.log_info("wplug: plugin " .. repo .. " already installed.")
             end
@@ -97,8 +92,6 @@ function M.setup(opts)
             api.log_info("wplug: finished initialization.")
         end
     end
-
-    api.log_info(M.opts.spec)
 
 end
 
@@ -111,7 +104,13 @@ end
 function M.update()
     for _, i in pairs(M.opts.spec) do
         if i.local_install == false then
-            
+            api.log_info("wplug: updating " .. i[1])
+            local git_status = io.popen("cd ~/.wezterm/" .. i.name .. " && git pull origin " .. i.branch):read("*all")
+            if string.match(git_status, "fatal:") then
+                api.log_error("wplug: failed to update " .. i[1])
+            else
+                api.log_info("wplug: " .. i[1] .. " updated!")
+            end
         end
     end
 end

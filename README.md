@@ -1,6 +1,11 @@
 # wplug
 A minimal plugin manager for WezTerm written in pure Lua.
 
+## Disclamer 
+
+This plugin might work unstable on Windows.
+Also, `wplug` still in development and will get new features with updates.
+
 ## Installation 
 `wplug` uses the `.wezterm` directory in your home directory to store itself and all your plugins.
 Run this line in the terminal to install `wplug`:
@@ -12,7 +17,7 @@ mkdir ~/.wezterm && git clone --branch main https://gitlab.com/kostya-zero/wplug
 This will also allow `wplug` to be updated along with your plugins.
 
 ## Configuration
-To use `wplug` you need to get his module in your configuration file and call method `setup` with options options.
+To use `wplug` you need to get his module in your configuration file and call method `setup` with options.
 ```lua
 local wplug = require("wplug")
 wplug.setup({
